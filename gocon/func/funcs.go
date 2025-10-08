@@ -2,17 +2,22 @@ package funcs
 
 import (
 	"crypto/rand"
-	"encoding/hex"
+	"math/big"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RandomString(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+func RandomOTP(length int) (string, error) {
+	digits := "0123456789"
+	otp := make([]byte, length)
+	for i := 0; i < length; i++ {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
+		if err != nil {
+			return "", err
+		}
+		otp[i] = digits[n.Int64()]
 	}
-	return hex.EncodeToString(bytes), nil // hex = doppelt so lang
+	return string(otp), nil
 }
 
 func CompareStringArray(arr1 []string, arr2 []string) bool {

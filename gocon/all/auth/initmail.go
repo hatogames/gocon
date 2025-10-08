@@ -5,13 +5,12 @@ import (
 	"fmt"
 	connection "gocon/db"
 	funcs "gocon/func"
-	mail "gocon/mailer"
+	mailer "gocon/mailer"
 	"log"
 	"net/http"
+	"net/mail"
+	"strings"
 	"time"
-
-	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 )
 
 type InitMailRequest struct {
@@ -21,29 +20,30 @@ type InitMailRequest struct {
 func Initmail(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
-	case "GET":
-		code := mux.Vars(r)["code"]
+	/*case "GET":
+	code := mux.Vars(r)["code"]
 
-		var token connection.EmailToken
-		result := connection.DB.First(&token, "code = ?", code)
-		if result.Error != nil {
-			http.Error(w, "Ungültiger oder abgelaufener Code", http.StatusNotFound)
-			return
-		}
+	var token connection.EmailToken
+	result := connection.DB.First(&token, "code = ?", code)
+	if result.Error != nil {
+		http.Error(w, "Ungültiger oder abgelaufener Code", http.StatusNotFound)
+		return
+	}
 
-		if time.Now().After(token.ExpiresAt) {
-			http.Error(w, "Dieser Verifizierungslink ist abgelaufen", http.StatusGone)
-			return
-		}
+	if time.Now().After(token.ExpiresAt) {
+		http.Error(w, "Dieser Verifizierungslink ist abgelaufen", http.StatusGone)
+		return
+	}
 
-		token.Verified = true
-		if err := connection.DB.Save(&token).Error; err != nil {
-			log.Println("Fehler beim Aktualisieren des Tokens:", err)
-			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
-			return
-		}
+	token.Verified = true
+	if err := connection.DB.Save(&token).Error; err != nil {
+		log.Println("Fehler beim Aktualisieren des Tokens:", err)
+		http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+		return
+	}
 
-		fmt.Fprintf(w, "E-Mail %s wurde erfolgreich verifiziert ✅", token.Email)
+	fmt.Fprintf(w, "E-Mail %s wurde erfolgreich verifiziert ✅", token.Email)
+	*/
 
 	case "POST":
 
@@ -54,50 +54,52 @@ func Initmail(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		code, err := funcs.RandomString(10)
+		_, err = mail.ParseAddress(req.Email)
 		if err != nil {
-			panic(err)
+			http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
+			return
+		}
+
+		code, err := funcs.RandomOTP(6)
+		if err != nil {
+			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+			return
 		}
 
 		//TODO email darf nicht in user sein
-
-		var verified bool
-		var existing connection.EmailToken
-		if err := connection.DB.First(&existing, "email = ?", req.Email).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				verified = false
-			}
-		} else {
-			verified = existing.Verified
-		}
 
 		token := connection.EmailToken{
 			Email:     req.Email,
 			Code:      code,
 			ExpiresAt: time.Now().Add(15 * time.Minute),
-			Verified:  verified,
 		}
 
 		if err := connection.DB.Save(&token).Error; err != nil {
+			if strings.Contains(err.Error(), "23505") {
+				http.Error(w, "Diese Email wird bereits verwendet", http.StatusFound)
+				return
+			}
+
+			// Alles andere
 			log.Println("Fehler beim Speichern des Tokens:", err)
 			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
 			return
 		}
-		link := fmt.Sprintf("http://localhost:8080/initmail/%s", code)
+
 		body := fmt.Sprintf(
 			"<h2>Bitte verifizieren Sie Ihren Account</h2>"+
-				"<p>Klicken Sie auf den Link, um Ihren Account zu verifizieren:</p>"+
-				"<a href=\"%s\">%s</a>", link, link,
+				"<p>Geben sie dieses OTP an, um Ihren Account zu verifizieren:</p>"+
+				"%s", code,
 		)
 
-		err = mail.SendMail(
-			"hatogames@yahoo.com",
+		err = mailer.SendMail(
+			req.Email,
 			"Verifizierungslink",
 			body,
 		)
 		if err != nil {
-			log.Fatal(err)
+			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+			return
 		}
-
 	}
 }

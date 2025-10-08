@@ -40,10 +40,9 @@ type Wireframe struct {
 
 type EmailToken struct {
 	gorm.Model
-	Email     string    `gorm:"primaryKey"`
-	Code      string    `gorm:"not null;unique"`
+	Email     string    `gorm:"not null;unique"`
+	Code      string    `gorm:"not null"`
 	ExpiresAt time.Time `gorm:"not null"`
-	Verified  bool      `gorm:"not null;default:false"`
 }
 
 type User struct {

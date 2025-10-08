@@ -7,8 +7,9 @@ import (
 	connection "gocon/db"
 	funcs "gocon/func"
 	"gocon/logger"
-	mail "gocon/mailer"
+	mailer "gocon/mailer"
 	"net/http"
+	"net/mail"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -78,6 +79,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Ungültiger Request-Body", http.StatusBadRequest)
 			return
 		}
+		_, err = mail.ParseAddress(req.User.Email)
+		if err != nil {
+			http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
+			return
+		}
 
 		vars := mux.Vars(r)
 		schoolstr := vars["school"]
@@ -128,10 +134,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !token.Verified {
+		/*if !token.Verified {
 			http.Error(w, "Email muss verifiziert sein", http.StatusUnauthorized)
 			return
-		}
+		}*/
 
 		//Hash Password
 
@@ -168,7 +174,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		mail.SendMail(req.User.Email, "Schulregistrierung", string(newUser.Data))
+		mailer.SendMail(req.User.Email, "Schulregistrierung", string(newUser.Data))
 
 		fmt.Fprint(w, "Ihre Registrierung wurde erfolgreich durch geführt. Eine Email mit allen Angaben wurde versendet")
 
