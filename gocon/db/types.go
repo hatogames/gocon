@@ -1,6 +1,8 @@
 package connection
 
 import (
+	"time"
+
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -21,8 +23,7 @@ type School struct {
 
 	Wireframes []Wireframe
 
-	Students      []Student
-	Registrations []Registration
+	Users []User
 }
 
 type Wireframe struct {
@@ -37,34 +38,23 @@ type Wireframe struct {
 	School   School
 }
 
-type Registration struct {
+type EmailToken struct {
 	gorm.Model
-	Data datatypes.JSON
-
-	SchoolID uint
-	School   School
-
-	UserID uint
-	User   User
-}
-
-type Student struct {
-	gorm.Model
-	Data datatypes.JSON
-
-	SchoolID uint
-	School   School
-
-	UserID uint
-	User   User
+	Email     string    `gorm:"primaryKey"`
+	Code      string    `gorm:"not null;unique"`
+	ExpiresAt time.Time `gorm:"not null"`
+	Verified  bool      `gorm:"not null;default:false"`
 }
 
 type User struct {
 	gorm.Model
 
-	Email string
-	Phash string
+	SchoolID uint
+	School   School
 
-	Student      *Student      `gorm:"foreignKey:UserID"`
-	Registration *Registration `gorm:"foreignKey:UserID"`
+	Role string
+
+	Data  datatypes.JSON
+	Email string `gorm:"not null;unique"`
+	Phash string
 }
