@@ -6,24 +6,39 @@ import (
 	connection "gocon/db"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
-
 	r := mux.NewRouter()
 	connection.Setup()
 
 	// Routen registrieren
 	r.HandleFunc("/login", auth.Login).Methods("POST")
-	r.HandleFunc("/initmail", auth.Initmail).Methods("POST")           // email : "email"  -> Emailversand: Verifizierungslink
-	r.HandleFunc("/initmail/{code}", auth.Initmail).Methods("GET")     // link + code -> verified Email
-	r.HandleFunc("/form/{school}", form.Create).Methods("POST", "GET") // school -> Wireframe
+	r.HandleFunc("/initmail", auth.Initmail).Methods("POST")
+	r.HandleFunc("/form/{school}", form.Create).Methods("POST", "GET")
 
-	log.Println("Server läuft auf http://localhost:8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		log.Fatal("Server Fehler:", err)
+	// CORS Middleware konfigurieren
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			"http://localhost:5173",          // Vue Dev Server
+			"https://deine-frontend-url.com", // Produktion
+		},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+	})
+
+	handler := c.Handler(r)
+
+	// PORT aus Environment Variable
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
 	}
 
+	log.Printf("Server läuft auf Port %s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

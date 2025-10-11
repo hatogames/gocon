@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	connection "gocon/db"
 	funcs "gocon/func"
@@ -9,8 +10,10 @@ import (
 	"log"
 	"net/http"
 	"net/mail"
-	"strings"
 	"time"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type InitMailRequest struct {
@@ -66,22 +69,29 @@ func Initmail(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//TODO email darf nicht in user sein
+		var user connection.User
+		result := connection.DB.First(&user, "email = ?", req.Email)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			// Email existiert noch nicht → OK, weiter
+		} else if result.Error != nil {
+			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+			return
+		} else {
+			// Email existiert bereits
+			http.Error(w, "Diese Email wird bereits verwendet", http.StatusConflict)
+			return
+		}
 
 		token := connection.EmailToken{
 			Email:     req.Email,
 			Code:      code,
 			ExpiresAt: time.Now().Add(15 * time.Minute),
 		}
-
-		if err := connection.DB.Save(&token).Error; err != nil {
-			if strings.Contains(err.Error(), "23505") {
-				http.Error(w, "Diese Email wird bereits verwendet", http.StatusFound)
-				return
-			}
-
-			// Alles andere
-			log.Println("Fehler beim Speichern des Tokens:", err)
+		if err := connection.DB.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "email"}},                         // hier prüfen wir Email
+			DoUpdates: clause.AssignmentColumns([]string{"code", "expires_at"}), // Felder die aktualisiert werden
+		}).Create(&token).Error; err != nil {
+			log.Println("Fehler beim Speichern/Updaten des Tokens:", err)
 			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
 			return
 		}
@@ -101,5 +111,7 @@ func Initmail(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Fprint(w, "Ihnen wurde eine Email mit Verifizierungscode gesendet")
 	}
 }

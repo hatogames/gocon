@@ -1,17 +1,14 @@
-# 1. Go-Image als Basis verwenden
-FROM golang:1.25-alpine
-
-# 2. Arbeitsverzeichnis setzen
+# Build Stage
+FROM golang:1.25-alpine AS builder
 WORKDIR /app
-
-# 3. Go-Dateien kopieren
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o app
 
-# 4. Build ausführen
-RUN go build -o app
-
-# 5. Port freigeben
+# Runtime Stage
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/app .
 EXPOSE 8080
-
-# 6. Container starten
 CMD ["./app"]

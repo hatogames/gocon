@@ -25,6 +25,7 @@ type Request struct {
 type User struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Code     string `json:"code"`
 }
 
 func Create(w http.ResponseWriter, r *http.Request) {
@@ -77,11 +78,31 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			http.Error(w, "Ungültiger Request-Body", http.StatusBadRequest)
+			fmt.Print(req)
 			return
 		}
 		_, err = mail.ParseAddress(req.User.Email)
 		if err != nil {
 			http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
+			fmt.Print(req)
+			return
+		}
+
+		if req.User.Code == "" {
+			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
+			fmt.Print(req)
+			return
+
+		}
+		if req.User.Email == "" {
+			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
+			fmt.Print(req)
+			return
+
+		}
+		if req.User.Password == "" {
+			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
+			fmt.Print(req)
 			return
 		}
 
@@ -93,9 +114,22 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//Check keys
+		//Check code
+		var token connection.EmailToken
+		result := connection.DB.First(&token, "email = ?", req.User.Email)
+		if result.Error != nil {
+			http.Error(w, "Email nicht vorhanden oder bereits registriert", http.StatusNotFound)
+			return
+		}
+
+		if token.Code != req.User.Code {
+			http.Error(w, "Email ist nicht korekt verifiziert", http.StatusNotFound)
+			return
+		}
+
+		//Compare keys
 		var wireframe connection.Wireframe
-		result := connection.DB.Where("school_id = ? AND name = ?", schoolID, "create").First(&wireframe)
+		result = connection.DB.Where("school_id = ? AND name = ?", schoolID, "create").First(&wireframe)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				http.Error(w, "Es konnte kein Eintrag gefunden werden", http.StatusNotFound)
@@ -126,21 +160,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//Check Email
-		var token connection.EmailToken
-		result = connection.DB.First(&token, "email = ?", req.User.Email)
-		if result.Error != nil {
-			http.Error(w, "Email nicht vorhanden oder bereits registriert", http.StatusNotFound)
-			return
-		}
-
-		/*if !token.Verified {
-			http.Error(w, "Email muss verifiziert sein", http.StatusUnauthorized)
-			return
-		}*/
-
 		//Hash Password
-
 		hash, err := funcs.HashPassword(req.User.Password, 14)
 		if err != nil {
 			http.Error(w, "Fehler beim Hashen des Passworts", http.StatusInternalServerError)
@@ -148,7 +168,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//make DB
-
 		dataJSON, err := json.Marshal(req.Data)
 		if err != nil {
 			http.Error(w, "Fehler beim Parsen der Daten", http.StatusInternalServerError)
