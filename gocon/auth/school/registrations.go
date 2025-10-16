@@ -29,8 +29,8 @@ func Registrations(w http.ResponseWriter, r *http.Request) {
 
 	var users []connection.User
 	result := connection.DB.
-		Select("data").
-		Find(&users, "school_id = ? AND role = ?", session.Id, "registration")
+		Select("data, role").
+		Find(&users, "school_id = ?", session.Id)
 
 	if result.Error != nil {
 		http.Error(w, "Interner Serverfehler", http.StatusInternalServerError)

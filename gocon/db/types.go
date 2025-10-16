@@ -22,6 +22,7 @@ type School struct {
 	OwnerID uint
 
 	Wireframes []Wireframe
+	Keys       datatypes.JSON
 
 	Users []User
 }

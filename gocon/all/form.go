@@ -166,6 +166,29 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Fehler beim Hashen des Passworts", http.StatusInternalServerError)
 			return
 		}
+		//add missingKeys
+		var school connection.School
+		result = connection.DB.First(&school, "id = ?", schoolID)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+			return
+		} else if result.Error != nil {
+			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+			return
+		}
+
+		var schoolKeys []string
+		err = json.Unmarshal(school.Keys, &schoolKeys)
+		if err != nil {
+			http.Error(w, "Fehler beim Lesen der School-Keys", http.StatusInternalServerError)
+			return
+		}
+
+		for _, key := range schoolKeys {
+			if _, exists := req.Data[key]; !exists {
+				req.Data[key] = "" // fehlenden Key hinzufügen
+			}
+		}
 
 		//make DB
 		dataJSON, err := json.Marshal(req.Data)
