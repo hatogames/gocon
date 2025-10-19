@@ -49,7 +49,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		Where("school_id = ? AND name = ?", session.Id, req.Wireframe).
 		Update("data", req.Data)
 	if result.Error != nil {
-		http.Error(w, "Fehler beim Aktualisieren der Rollen", http.StatusInternalServerError)
+		http.Error(w, "Fehler beim Speichern", http.StatusInternalServerError)
 		return
 	}
 
