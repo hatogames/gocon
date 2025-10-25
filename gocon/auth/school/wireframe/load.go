@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	connection "gocon/db"
+
 	"gocon/db/mini"
 	"net/http"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -32,6 +34,8 @@ func Load(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bitte loggen sie sich ein", http.StatusUnauthorized)
 		return
 	}
+
+	fmt.Println(session)
 
 	//Verified
 
@@ -58,6 +62,16 @@ func Load(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprint(w, wireframe)
+	type WireframeResponse struct {
+		Keys datatypes.JSON `json:"keys"`
+		Data datatypes.JSON `json:"data"`
+	}
 
+	reponse := WireframeResponse{
+		Keys: wireframe.Keys,
+		Data: wireframe.Data,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reponse)
 }

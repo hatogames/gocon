@@ -26,16 +26,18 @@ func main() {
 	r.HandleFunc("/users", school.Registrations).Methods("GET")
 	r.HandleFunc("/move", school.Move).Methods("POST")
 	r.HandleFunc("/wireframe/update", wireframe.Update).Methods("POST")
-	r.HandleFunc("/wireframe/load", wireframe.Load).Methods("GET")
+	r.HandleFunc("/wireframe/load", wireframe.Load).Methods("POST")
 
 	// CORS Middleware konfigurieren
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			"http://localhost:5173",          // Vue Dev Server
-			"https://deine-frontend-url.com", // Produktion
+			"http://localhost:5173",
+			"http://localhost:8080",
+			"https://deine-frontend-url.com",
 		},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Content-Type", "Authorization"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true, // ← wichtig!
 	})
 
 	handler := c.Handler(r)
