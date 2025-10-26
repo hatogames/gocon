@@ -69,7 +69,7 @@ func Initmail(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var user connection.User
+		var user connection.Registration
 		result := connection.DB.First(&user, "email = ?", req.Email)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			// Email existiert noch nicht → OK, weiter

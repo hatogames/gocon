@@ -14,7 +14,7 @@ var DB *gorm.DB
 func Setup() {
 	DB = connectDB(getDBurl())
 
-	DB.AutoMigrate(&Owner{}, &School{}, &User{}, &Wireframe{}, &EmailToken{})
+	DB.AutoMigrate(&Owner{}, &School{}, &Registration{}, &Wireframe{}, &EmailToken{})
 }
 
 func getDBurl() string {

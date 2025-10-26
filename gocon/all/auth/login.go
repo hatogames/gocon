@@ -86,7 +86,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			HttpOnly: true, // schützt vor Zugriff durch JavaScript
 			Secure:   true, // nur über HTTPS senden
 			SameSite: http.SameSiteStrictMode,
-			Expires:  time.Now().Add(10 * time.Hour), // 1 Tag gültig
+			Expires:  time.Now().Add(1 * time.Hour), // 1 Tag gültig
 		}
 
 		// Cookie im Response-Header setzen

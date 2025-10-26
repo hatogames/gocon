@@ -12,6 +12,7 @@ type request struct {
 	Data      map[string]interface{} `json:"data"`
 }
 
+// TODO: form validation
 func Update(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 	if err != nil {

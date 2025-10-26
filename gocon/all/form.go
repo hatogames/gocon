@@ -197,12 +197,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newUser := connection.User{
+		newUser := connection.Registration{
 			Email:    req.User.Email,
 			Phash:    hash,
 			Data:     datatypes.JSON(dataJSON),
 			SchoolID: uint(schoolID),
-			Role:     "registration",
 		}
 
 		if err := connection.DB.Create(&newUser).Error; err != nil {

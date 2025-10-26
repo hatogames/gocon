@@ -24,7 +24,7 @@ type School struct {
 	Wireframes []Wireframe
 	Keys       datatypes.JSON
 
-	Users []User
+	Registrations []Registration
 }
 
 type Wireframe struct {
@@ -46,13 +46,11 @@ type EmailToken struct {
 	ExpiresAt time.Time `gorm:"not null"`
 }
 
-type User struct {
+type Registration struct {
 	gorm.Model
 
 	SchoolID uint
 	School   School
-
-	Role string
 
 	Data  datatypes.JSON
 	Email string `gorm:"not null;unique"`

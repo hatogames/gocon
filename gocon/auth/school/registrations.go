@@ -27,9 +27,9 @@ func Registrations(w http.ResponseWriter, r *http.Request) {
 
 	//Verified
 
-	var users []connection.User
+	var users []connection.Registration
 	result := connection.DB.
-		Select("data, role").
+		Select("data").
 		Find(&users, "school_id = ?", session.Id)
 
 	if result.Error != nil {

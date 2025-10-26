@@ -23,8 +23,7 @@ func main() {
 	r.HandleFunc("/initmail", auth.Initmail).Methods("POST")
 	r.HandleFunc("/form/{school}", form.Create).Methods("POST", "GET")
 
-	r.HandleFunc("/users", school.Registrations).Methods("GET")
-	r.HandleFunc("/move", school.Move).Methods("POST")
+	r.HandleFunc("/registrations", school.Registrations).Methods("GET")
 	r.HandleFunc("/wireframe/update", wireframe.Update).Methods("POST")
 	r.HandleFunc("/wireframe/load", wireframe.Load).Methods("POST")
 
