@@ -3,6 +3,7 @@ package main
 import (
 	form "gocon/all"
 	auth "gocon/all/auth"
+	auth_all "gocon/auth"
 	school "gocon/auth/school"
 	"gocon/auth/school/wireframe"
 	connection "gocon/db"
@@ -26,6 +27,8 @@ func main() {
 	r.HandleFunc("/registrations", school.Registrations).Methods("GET")
 	r.HandleFunc("/wireframe/update", wireframe.Update).Methods("POST")
 	r.HandleFunc("/wireframe/load", wireframe.Load).Methods("POST")
+
+	r.HandleFunc("/whati", auth_all.Whati).Methods("GET")
 
 	// CORS Middleware konfigurieren
 	c := cors.New(cors.Options{

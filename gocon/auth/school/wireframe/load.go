@@ -3,7 +3,6 @@ package wireframe
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	connection "gocon/db"
 
 	"gocon/db/mini"
@@ -34,8 +33,6 @@ func Load(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bitte loggen sie sich ein", http.StatusUnauthorized)
 		return
 	}
-
-	fmt.Println(session)
 
 	//Verified
 

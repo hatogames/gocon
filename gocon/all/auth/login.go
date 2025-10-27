@@ -70,6 +70,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		SessionStr, err := funcs.RandomString(20)
+		if err != nil {
+			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+			return
+		}
+
 		new := mini.Session{
 			Session: SessionStr,
 			Typ:     mini.UserType("school"),

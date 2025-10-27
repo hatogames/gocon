@@ -22,7 +22,6 @@ type School struct {
 	OwnerID uint
 
 	Wireframes []Wireframe
-	Keys       datatypes.JSON
 
 	Registrations []Registration
 }
@@ -30,7 +29,7 @@ type School struct {
 type Wireframe struct {
 	gorm.Model
 
-	Name  string `gorm:"unique"`
+	Name  string
 	Data  datatypes.JSON
 	Keys  datatypes.JSON
 	Activ bool

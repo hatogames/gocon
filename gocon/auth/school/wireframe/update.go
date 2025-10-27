@@ -10,6 +10,7 @@ import (
 type request struct {
 	Wireframe string                 `json:"wireframe"`
 	Data      map[string]interface{} `json:"data"`
+	Keys      []string               `json:"keys"`
 }
 
 // TODO: form validation
@@ -45,13 +46,32 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Marshal data and keys to JSON for datatypes.JSON columns
+	jsonData, err := json.Marshal(req.Data)
+	if err != nil {
+		http.Error(w, "Fehler beim Verarbeiten der Daten", http.StatusInternalServerError)
+		return
+	}
+	jsonKeys, err := json.Marshal(req.Keys)
+	if err != nil {
+		http.Error(w, "Fehler beim Verarbeiten der Keys", http.StatusInternalServerError)
+		return
+	}
+
+	updates := map[string]interface{}{
+		"data": jsonData,
+		"keys": jsonKeys,
+	}
+
 	result := connection.DB.
 		Model(&connection.Wireframe{}).
 		Where("school_id = ? AND name = ?", session.Id, req.Wireframe).
-		Update("data", req.Data)
+		Updates(updates)
 	if result.Error != nil {
 		http.Error(w, "Fehler beim Speichern", http.StatusInternalServerError)
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Erfolgreich gespeichert"))
 }
