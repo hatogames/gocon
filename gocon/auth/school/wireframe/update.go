@@ -2,6 +2,7 @@ package wireframe
 
 import (
 	"encoding/json"
+	"fmt"
 	connection "gocon/db"
 	"gocon/db/mini"
 	"net/http"
@@ -65,7 +66,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 	result := connection.DB.
 		Model(&connection.Wireframe{}).
-		Where("school_id = ? AND name = ?", session.Id, req.Wireframe).
+		Where("school_id = ? AND name = ?", session.Id, req.Wireframe+fmt.Sprint(session.Id)).
 		Updates(updates)
 	if result.Error != nil {
 		http.Error(w, "Fehler beim Speichern", http.StatusInternalServerError)

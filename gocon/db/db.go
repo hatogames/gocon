@@ -18,10 +18,12 @@ func Setup() {
 }
 
 func getDBurl() string {
-	dsn := "postgresql://neondb_owner:npg_9sVgw0DYTyoE@ep-divine-unit-ag4rv7l0-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+	//postgresql://neondb_owner:npg_9sVgw0DYTyoE@ep-divine-unit-ag4rv7l0-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+	/*dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		log.Fatal("DATABASE_URL environment variable is not set")
-	}
+		log.Fatal("DATABASE_URL = nil")
+	}*/
+	dsn := "postgresql://neondb_owner:npg_9sVgw0DYTyoE@ep-divine-unit-ag4rv7l0-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 	return dsn
 }
 

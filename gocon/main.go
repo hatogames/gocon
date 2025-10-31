@@ -22,11 +22,12 @@ func main() {
 	// Routen registrieren
 	r.HandleFunc("/login", auth.Login).Methods("POST")
 	r.HandleFunc("/initmail", auth.Initmail).Methods("POST")
-	r.HandleFunc("/form/{school}", form.Create).Methods("POST", "GET")
+	r.HandleFunc("/form/{school}/{form}", form.Create).Methods("POST", "GET")
 
 	r.HandleFunc("/registrations", school.Registrations).Methods("GET")
 	r.HandleFunc("/wireframe/update", wireframe.Update).Methods("POST")
 	r.HandleFunc("/wireframe/load", wireframe.Load).Methods("POST")
+	r.HandleFunc("/wireframe/all", wireframe.All).Methods("GET")
 
 	r.HandleFunc("/whati", auth_all.Whati).Methods("GET")
 
@@ -36,6 +37,7 @@ func main() {
 			"http://localhost:5173",
 			"http://localhost:8080",
 			"https://deine-frontend-url.com",
+			"http://localhost:4173",
 		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
@@ -47,7 +49,7 @@ func main() {
 	// PORT aus Environment Variable
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		log.Fatal("PORT = nil")
 	}
 
 	log.Printf("Server läuft auf Port %s\n", port)

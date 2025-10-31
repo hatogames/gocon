@@ -29,7 +29,7 @@ type School struct {
 type Wireframe struct {
 	gorm.Model
 
-	Name  string
+	Name  string `gorm:"not null;unique"`
 	Data  datatypes.JSON
 	Keys  datatypes.JSON
 	Activ bool
@@ -51,7 +51,8 @@ type Registration struct {
 	SchoolID uint
 	School   School
 
+	WireframeName string
+
 	Data  datatypes.JSON
 	Email string `gorm:"not null;unique"`
-	Phash string
 }

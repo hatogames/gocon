@@ -35,27 +35,32 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
 		//school to int
+		form := vars["form"]
 		schoolstr := vars["school"]
 		schoolID, err := strconv.Atoi(schoolstr)
 		if err != nil {
 			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
 			return
+			//NORMAL-err
 		}
 
 		//get "create"-wireframe
 		var wireframe connection.Wireframe
-		result := connection.DB.Where("school_id = ? AND name = ?", schoolID, "create").First(&wireframe)
+		result := connection.DB.Where("school_id = ? AND name = ?", schoolID, form+schoolstr).First(&wireframe)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				http.Error(w, "Es konnte kein Eintrag gefunden werden", http.StatusNotFound)
+				//LOGGER-err
 			} else {
 				http.Error(w, "Datenbank-Fehler", http.StatusInternalServerError)
+				//FATAL-err
 			}
 			return
 		}
 		if !wireframe.Activ {
 			http.Error(w, "Der Eintrag ist momentan nicht aktiviert", http.StatusForbidden)
 			return
+			//NORMAL-err
 		}
 
 		type WireframeResponse struct {
@@ -80,33 +85,39 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Ungültiger Request-Body", http.StatusBadRequest)
 			fmt.Print(req)
 			return
+			//HACKER-err
 		}
 		_, err = mail.ParseAddress(req.User.Email)
 		if err != nil {
 			http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
 			fmt.Print(req)
 			return
+			//HACKER-err
 		}
 
 		if req.User.Code == "" {
 			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
 			fmt.Print(req)
 			return
+			//HACKER-err
 
 		}
 		if req.User.Email == "" {
 			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
 			fmt.Print(req)
 			return
+			//HACKER-err
 
 		}
 		if req.User.Password == "" {
 			http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
 			fmt.Print(req)
 			return
+			//HACKER-err
 		}
 
 		vars := mux.Vars(r)
+		form := vars["form"]
 		schoolstr := vars["school"]
 		schoolID, err := strconv.Atoi(schoolstr)
 		if err != nil {
@@ -118,7 +129,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		var token connection.EmailToken
 		result := connection.DB.First(&token, "email = ?", req.User.Email)
 		if result.Error != nil {
-			http.Error(w, "Email nicht vorhanden oder bereits registriert", http.StatusNotFound)
+			http.Error(w, "Email nicht verifiziert oder bereits registriert", http.StatusNotFound)
 			return
 		}
 
@@ -129,17 +140,17 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 		//Compare keys
 		var wireframe connection.Wireframe
-		result = connection.DB.Where("school_id = ? AND name = ?", schoolID, "create").First(&wireframe)
+		result = connection.DB.Where("school_id = ? AND name = ?", schoolID, form+schoolstr).First(&wireframe)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-				http.Error(w, "Es konnte kein Eintrag gefunden werden", http.StatusNotFound)
+				http.Error(w, "Es konnte kein passender Eintrag gefunden werden", http.StatusNotFound)
 			} else {
 				http.Error(w, "Datenbank-Fehler", http.StatusInternalServerError)
 			}
 			return
 		}
 		if !wireframe.Activ {
-			http.Error(w, "Der Eintrag ist momentan nicht aktiviert", http.StatusForbidden)
+			http.Error(w, "Der Eintrag wurde bereits deaktiviert", http.StatusForbidden)
 			return
 		}
 
@@ -160,12 +171,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//Hash Password
+		/*Hash Password
 		hash, err := funcs.HashPassword(req.User.Password, 14)
 		if err != nil {
 			http.Error(w, "Fehler beim Hashen des Passworts", http.StatusInternalServerError)
 			return
-		}
+		}*/
 
 		//make DB
 		dataJSON, err := json.Marshal(req.Data)
@@ -175,10 +186,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		}
 
 		newUser := connection.Registration{
-			Email:    req.User.Email,
-			Phash:    hash,
-			Data:     datatypes.JSON(dataJSON),
-			SchoolID: uint(schoolID),
+			Email: req.User.Email,
+			/*Phash:         hash,*/
+			Data:          datatypes.JSON(dataJSON),
+			SchoolID:      uint(schoolID),
+			WireframeName: form,
 		}
 
 		if err := connection.DB.Create(&newUser).Error; err != nil {

@@ -29,26 +29,28 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Ungültiger Request-Body", http.StatusBadRequest)
 		return
+		//HACKER-err
 	}
 
 	_, err = mail.ParseAddress(req.Email)
 	if err != nil {
 		http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
 		return
+		//HACKER-err
 	}
 
 	if req.Password == "" {
-		http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
+		http.Error(w, "Ungültiges Passwort", http.StatusBadRequest)
 		fmt.Print(req)
 		return
-
+		//HACKER-err
 	}
 
 	if req.Type == "" {
-		http.Error(w, "Ungültige Anfrage", http.StatusBadRequest)
+		http.Error(w, "Ungültige Benutzerrolle", http.StatusBadRequest)
 		fmt.Print(req)
 		return
-
+		//HACKER-err
 	}
 
 	if req.Type == mini.UserType("school") {
@@ -56,23 +58,27 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		result := connection.DB.First(&owner, "email = ?", req.Email)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			bcrypt.CompareHashAndPassword([]byte("$2a$14$rTeS9s7JOAlCjUuy/YZ1meIdLTgy30sR4gJ.RDQaiGoTUiIN6jYri"), []byte("req.Password"))
-			fmt.Fprint(w, "Falsche Anmeldedaten")
+			http.Error(w, "Ungültige Anmeldedaten", http.StatusUnauthorized)
 			return
+			//LOGGER-err
 		} else if result.Error != nil {
 			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
 			return
+			//FATAL-err
 		}
 
 		err := bcrypt.CompareHashAndPassword([]byte(owner.Phash), []byte(req.Password))
 		if err != nil {
-			fmt.Fprint(w, "Falsche Anmeldedaten")
+			http.Error(w, "Ungültige Anmeldedaten", http.StatusUnauthorized)
 			return
+			//LOGGER-err
 		}
 
 		SessionStr, err := funcs.RandomString(20)
 		if err != nil {
 			http.Error(w, "Interner Fehler", http.StatusInternalServerError)
 			return
+			//FATAL-err
 		}
 
 		new := mini.Session{

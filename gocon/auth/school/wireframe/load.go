@@ -3,6 +3,7 @@ package wireframe
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	connection "gocon/db"
 
 	"gocon/db/mini"
@@ -49,7 +50,7 @@ func Load(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var wireframe connection.Wireframe
-	result := connection.DB.Where("school_id = ? AND name = ?", session.Id, req.Wireframe).First(&wireframe)
+	result := connection.DB.Where("school_id = ? AND name = ?", session.Id, req.Wireframe+fmt.Sprint(session.Id)).First(&wireframe)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			http.Error(w, "Es konnte kein Eintrag gefunden werden", http.StatusNotFound)
