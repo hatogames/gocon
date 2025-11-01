@@ -27,6 +27,7 @@ func main() {
 	r.HandleFunc("/registrations", school.Registrations).Methods("GET")
 	r.HandleFunc("/wireframe/update", wireframe.Update).Methods("POST")
 	r.HandleFunc("/wireframe/load", wireframe.Load).Methods("POST")
+	r.HandleFunc("/wireframe/make", wireframe.Make).Methods("POST")
 	r.HandleFunc("/wireframe/all", wireframe.All).Methods("GET")
 
 	r.HandleFunc("/whati", auth_all.Whati).Methods("GET")

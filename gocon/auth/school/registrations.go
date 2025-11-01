@@ -29,7 +29,7 @@ func Registrations(w http.ResponseWriter, r *http.Request) {
 
 	var users []connection.Registration
 	result := connection.DB.
-		Select("data").
+		Select("data", "wireframe_name", "id").
 		Find(&users, "school_id = ?", session.Id)
 
 	if result.Error != nil {
