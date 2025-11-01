@@ -45,7 +45,7 @@ func Make(w http.ResponseWriter, r *http.Request) {
 		Name:     req.Wireframe + fmt.Sprint(session.Id),
 		Data:     datatypes.JSON([]byte(`{"data": []}`)), // korrekt geschlossen
 		Keys:     datatypes.JSON([]byte(`[]`)),           // leeres Array
-		Activ:    false,
+		Activ:    true,
 	}
 
 	result := connection.DB.Create(&newWireframe)
